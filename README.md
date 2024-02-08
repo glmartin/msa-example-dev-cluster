@@ -17,17 +17,16 @@ REST API image because the REST API is intended to be one of potentially many mi
 
 ## Related Repos:
 
-https://github.com/glmartin/msa-example-rest-api
-
-https://github.com/glmartin/msa-example-db-mgmt
+* https://github.com/glmartin/msa-example-rest-api
+* https://github.com/glmartin/msa-example-db-mgmt
 
 
 ## References
 
-https://spring.io/guides/tutorials/rest/
-https://oauth.net/2/
-https://rest-assured.io/
-https://testcontainers.com/guides/testing-spring-boot-rest-api-using-testcontainers/
-https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
-https://stateless.group/hal_specification.html
-https://spring.io/guides/topicals/spring-boot-docker/
+* https://spring.io/guides/tutorials/rest/
+* https://oauth.net/2/
+* https://rest-assured.io/
+* https://testcontainers.com/guides/testing-spring-boot-rest-api-using-testcontainers/
+* https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
+* https://stateless.group/hal_specification.html
+* https://spring.io/guides/topicals/spring-boot-docker/
