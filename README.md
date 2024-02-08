@@ -15,6 +15,13 @@ REST API image because the REST API is intended to be one of potentially many mi
 * JWT Authentication - TODO
 * Buid and Deployment with GitHub Actions - TODO
 
+## Secrets
+
+Since this is a docker-compose project, secret values are handled in separate files. I added `secrets_*` to the
+`.gitignore` file so we can create simple text files that would contain our secrets, and it wouldn't be committed to Git. 
+In this case, the `docker-compose.yaml` is expecting a file called `secrets_db_password` that would contain the password
+for the DB.
+
 ## Related Repos:
 
 * https://github.com/glmartin/msa-example-rest-api
