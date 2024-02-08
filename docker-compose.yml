@@ -1,0 +1,32 @@
+version: '2'
+
+services:
+  migrations:
+    image: local/db-migrations:1.0.1
+    container_name: migrations
+    depends_on:
+      - db
+    environment: 
+      - DB_PASSWORD=mypass
+          
+  db:
+    image: 'postgres:13.1-alpine'
+    container_name: db
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypass
+      - POSTGRES_DB=restapi
+
+  app:
+    image: 'local/rest-api:1.0.1'
+    ports:
+      - 8080:8080
+    container_name: app
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=restapi
+      - DB_USERNAME=myuser
+      - DB_PASSWORD=mypass
