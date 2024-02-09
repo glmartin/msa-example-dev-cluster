@@ -7,6 +7,10 @@ services:
     depends_on:
       - db
     environment: 
+      - DB_NAME=restapi
+      - DB_PORT=5432
+      - DB_HOST=db
+      - DB_USERNAME=myuser
       - DB_PASSWORD=/run/secrets/db_password
           
   db:
@@ -25,6 +29,7 @@ services:
     depends_on:
       - db
     environment:
+      - PRELOAD_SAMPLE_DATA=true
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=restapi
