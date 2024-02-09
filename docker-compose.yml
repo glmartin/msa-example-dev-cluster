@@ -29,7 +29,7 @@ services:
     depends_on:
       - db
     environment:
-      - PRELOAD_SAMPLE_DATA=true
+      - PRELOAD_SAMPLE_DATA=false
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=restapi
