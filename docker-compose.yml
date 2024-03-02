@@ -1,44 +1,95 @@
 version: '2'
 
 services:
+  db:
+    image: 'postgres:13.1-alpine'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    container_name: db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - msa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]  # tests if the service is ready
+
   migrations:
     image: local/msa-example-db-mgmt:1.0.1
     container_name: migrations
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment: 
-      - DB_NAME=restapi
+      - DB_NAME=${POSTGRES_DB}
       - DB_PORT=5432
       - DB_HOST=db
-      - DB_USERNAME=myuser
-      - DB_PASSWORD=/run/secrets/db_password
+      - DB_USERNAME=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - msa-network
           
-  db:
-    image: 'postgres:13.1-alpine'
-    container_name: db
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.6
+    container_name: keycloak
+    command: start
     environment:
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=/run/secrets/db_password
-      - POSTGRES_DB=restapi
-
-  app:
-    image: 'local/msa-example-rest-api:1.0.2'
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8080
+      - KC_HOSTNAME_STRICT_BACKCHANNEL=false
+      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HEALTH_ENABLED=true
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - KC_DB_USERNAME=${POSTGRES_USER}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - 8080:8080
+    healthcheck:
+      # Since the keycloak image doesn't have cURL, we can use the shell's TCP device to check the health
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080;echo -e \"GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - msa-network
+
+  app:
+    image: 'local/msa-example-rest-api:1.0.15'
+    ports:
+      - 80:8080
     container_name: app
     depends_on:
-      - db
+      keycloak:
+        condition: service_healthy
+      db:
+        condition: service_healthy
     environment:
       - PRELOAD_SAMPLE_DATA=false
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_NAME=restapi
-      - DB_USERNAME=myuser
-      - DB_PASSWORD=/run/secrets/db_password
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USERNAME=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - msa-network
 
 secrets:
    db_password:
      file: secrets_db_password
 
 volumes:
-    db_data:
+    postgres_data:
+      driver: local
+
+networks:
+  msa-network:
+    driver: bridge

@@ -17,6 +17,50 @@ REST API image because the REST API is intended to be one of potentially many mi
 * JWT Authentication - TODO
 * Buid and Deployment with GitHub Actions - TODO
 
+
+## Access Managment
+
+For this project, I am using [Keycloak](https://www.keycloak.org/) to handle access management. I set up a realm (lv-426), user (eripley), auth client, and realm role (msa-orgs). Using the default Keycloak setup for the JWT, the role is listed in the `realm_access.roles` array:
+
+```
+"realm_access": {
+    "roles": [
+      "msa-orgs",
+      "offline_access",
+      "uma_authorization",
+      "default-roles-lv-426"
+    ]
+}
+```
+
+To check the roles in the API, I added a new `JwtAuthenticationConverter` bean, convert the roles in the JWT to a 
+collection of `GrantedAuthority` objects. Refer to the `SecurityConfig` class in the API for more info.
+
+Use http://localhost:8080/realms/lv-426/.well-known/openid-configuration to view the configuration.
+
+### Get a JWT
+
+To get a JWT, we make a post to the `/realms/lv-426/protocol/openid-connect/token` endpoint of the Keycloak API: 
+
+```shell
+curl -L -X POST 'http://localhost:8080/realms/lv-426/protocol/openid-connect/token' \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'client_id=${KEYCLOAD_CLIENT_ID}' \
+    --data-urlencode 'grant_type=password' 
+    --data-urlencode 'client_secret=${KEYCLOAD_CLIENT_SECRET}' \
+    --data-urlencode 'scope=openid' \
+    --data-urlencode 'username=${KEYCLOAD_USERNAME}' \
+    --data-urlencode 'password=${KEYCLOAD_USER_PASSWORD}'
+```
+
+This will return JSON containing the `access_token`. The `access_token` is the JWT. We can then use the JWT in calls to the API:
+
+```shell
+curl -v -H "Authorization: Bearer $JWT" http://lv-426.restapi/api/organizations
+```
+
+*NOTE*: I added `lv-426.restapi` to my `/etc/hosts` so I can call it without using `localhost`.
+
 ## Secrets
 
 Since this is a docker-compose project, secret values are handled in separate files. I added `secrets_*` to the
@@ -39,3 +83,4 @@ for the DB.
 * https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
 * https://stateless.group/hal_specification.html
 * https://spring.io/guides/topicals/spring-boot-docker/
+* https://developers.redhat.com/blog/2020/01/29/api-login-and-jwt-token-generation-using-keycloak#
