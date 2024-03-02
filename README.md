@@ -68,6 +68,8 @@ Since this is a docker-compose project, secret values are handled in separate fi
 In this case, the `docker-compose.yaml` is expecting a file called `secrets_db_password` that would contain the password
 for the DB.
 
+Additionally, secrets can be added to a `.env` file that would be as environment variables.
+
 ## Related Repos:
 
 * https://github.com/glmartin/msa-example-rest-api
